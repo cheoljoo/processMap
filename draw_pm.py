@@ -421,8 +421,10 @@ class DrawProcessMap :
         failOpCheckList = '_Op_'+direction+'FailCheckPoint'
         failResult = '_result_'+direction+'FailCheckPoint'
         failFinalResult = '_final_result_'+direction+'FailCheckPoint'
+        print('!!fail:',ds[failCheck] , 'direction:', direction)
         if ds[failCheck].strip() != '':
-            print(failCheck,ds[failCheck])
+            if self.debug:
+                print('failcheck:',failCheck,'->',ds[failCheck])
             with open(targetFileName , 'r', encoding='utf-8', errors='ignore') as f:
                 contents = f.readlines()
                 pos = 0
@@ -439,31 +441,47 @@ class DrawProcessMap :
                     if v in ds[failCheckList][i+1:]:
                         print("Error : your CheckPoint order is wrong:", v , 'should not be prior order.',r)
                         quit(4)
-                foundFlag = False
                 ds[failResult] = ds[failCheck]
+                if self.debug:
+                    print('ds[failCheckList]:',ds[failCheckList])
+                    print('ds[failOpCheckList]:',ds[failOpCheckList])
+                line = 0
                 for i,v in enumerate(ds[failCheckList]):
+                    foundFlag = False
+                    if self.debug:
+                        print('ds[failCheckList:', failCheckList,'] ->i:',i,'v:',v)
+                        print('len(contents):',len(contents))
                     for line in range(pos,len(contents)):
                         if contents[line].find(v) >= 0:  # found
+                            if self.debug:
+                                print("matched-line:",line , 'contents:',contents[line].strip())
                             foundFlag = True
                             if i+1 < len(ds[failOpCheckList]):
-                                if ds[failOpCheckList][i+1].find('SEQ') < 0:  # not SEQ
+                                if ds[failOpCheckList][i+1].find('_SEQ') < 0:  # not SEQ
                                     pos = 0
                                 else :
                                     pos = line
                             else:
                                 pos = 0
                             break
+                        elif ds[failOpCheckList][i].find('INONELINE_') >= 0:  # if IN 1 LINE , it is done.
+                            break
                     ds[failResult] = ds[failResult].replace(v,str(foundFlag))
-                    print(v,ds[failResult])
-                ds[failResult] = ds[failResult].replace('_AND_','and')
+                    if self.debug:
+                        print('line:',line ,'pos:',pos,'changed item:',v,' is changed into =>',ds[failResult])
+                ds[failResult] = ds[failResult].replace('_SEQANDINONELINE_','and')
                 ds[failResult] = ds[failResult].replace('_SEQAND_','and')
-                ds[failResult] = ds[failResult].replace('_OR_','or')
+                ds[failResult] = ds[failResult].replace('_AND_','and')
+                ds[failResult] = ds[failResult].replace('_SEQORINONELINE_','or')
                 ds[failResult] = ds[failResult].replace('_SEQOR_','or')
+                ds[failResult] = ds[failResult].replace('_OR_','or')
                 ds[failFinalResult] = eval(ds[failResult])
-                print(ds[failResult])
-                print(eval(ds[failResult]))
+                print('fail ds:',ds[failResult])
+                print('fail eval:',eval(ds[failResult]))
 
                 if ds[failFinalResult]:
+                    if self.debug :
+                        print('fail : return')
                     return
 
             # success checkpoint
@@ -477,8 +495,10 @@ class DrawProcessMap :
         successOpCheckList = '_Op_'+direction+'SuccessCheckPoint'
         successResult = '_result_'+direction+'SuccessCheckPoint'
         successFinalResult = '_final_result_'+direction+'SuccessCheckPoint'
+        print('!!success:',ds[successCheck] , 'direction:', direction)
         if ds[successCheck].strip() != '':
-            print(successCheck,ds[successCheck])
+            if self.debug:
+                print('successcheck:',successCheck,ds[successCheck])
             with open(targetFileName , 'r', encoding='utf-8', errors='ignore') as f:
                 contents = f.readlines()
                 pos = 0
@@ -489,27 +509,41 @@ class DrawProcessMap :
                         quit(4)
                 foundFlag = False
                 ds[successResult] = ds[successCheck]
+                if self.debug:
+                    print('ds[successCheckList]:',ds[successCheckList])
+                    print('ds[successOpCheckList]:',ds[successOpCheckList])
+                line = 0
                 for i,v in enumerate(ds[successCheckList]):
+                    foundFlag = False
+                    if self.debug:
+                        print('ds[successCheckList:', successCheckList,'] ->i:',i,'v:',v)
+                        print('len(contents):',len(contents))
                     for line in range(pos,len(contents)):
                         if contents[line].find(v) >= 0:  # found
+                            if self.debug:
+                                print("matched-line:",line , 'contents:',contents[line].strip())
                             foundFlag = True
-                            if i+1 < len(ds[successOpCheckList]):
+                            if i < len(ds[successOpCheckList]):
                                 if ds[successOpCheckList][i+1].find('SEQ') < 0:  # not SEQ
                                     pos = 0
                                 else :
                                     pos = line
-                            else:
                                 pos = 0
                             break
+                        elif ds[successOpCheckList][i].find('INONELINE_') >= 0:  # if IN 1 LINE , it is done.
+                            break
                     ds[successResult] = ds[successResult].replace(v,str(foundFlag))
-                    print(v,ds[successResult])
-                ds[successResult] = ds[successResult].replace('_AND_','and')
+                    if self.debug:
+                        print('line:',line ,'pos:',pos,'changed item:',v,' is changed into =>',ds[successResult])
+                ds[successResult] = ds[successResult].replace('_SEQANDINONELINE_','and')
                 ds[successResult] = ds[successResult].replace('_SEQAND_','and')
-                ds[successResult] = ds[successResult].replace('_OR_','or')
+                ds[successResult] = ds[successResult].replace('_AND_','and')
+                ds[successResult] = ds[successResult].replace('_SEQORINONELINE_','or')
                 ds[successResult] = ds[successResult].replace('_SEQOR_','or')
+                ds[successResult] = ds[successResult].replace('_OR_','or')
                 ds[successFinalResult] = eval(ds[successResult])
-                print(ds[successResult])
-                print(eval(ds[successResult]))
+                print('success ds:',ds[successResult])
+                print('success eval:',eval(ds[successResult]))
 
         return
 
@@ -518,63 +552,94 @@ class DrawProcessMap :
         ans = []
         ansOp = []
         bitOp = ''
+        oldOp = ''
         oldAndOp = ''
         oldOrOp = ''
         oldSeqAndOp = ''
         oldSeqOrOp = ''
-        a = sc.split('((')
-        for a1 in a:
-            if a1.strip() == '':
-                continue
-            else :
-                b = a1.split('))')
-                for b1 in b:
-                    if b1.strip() == '':
-                        continue
-                    else:
-                        c = b1.split('_AND_')
-                        if len(c) > 1 :
-                            oldAndOp = bitOp
-                            bitOp = '_AND_'
-                        for c1 in c:
-                            if c1.strip() == '':
-                                continue
-                            else :
-                                d = c1.split('_OR_')
-                                if  len(d) > 1:
-                                    oldOrOp = bitOp
-                                    bitOp = '_OR_'
-                                for d1 in d:
-                                    if d1.strip() == '':
-                                        continue
-                                    else:
-                                        e = d1.split('_SEQOR_')
-                                        if  len(e) > 1:
-                                            oldSeqOrOp = bitOp
-                                            bitOp = '_SEQOR_'
-                                        for e1 in e:
-                                            if e1.strip() == '':
-                                                continue
-                                            else:
-                                                f = e1.split('_SEQAND_')
-                                                if  len(f) > 1:
-                                                    oldSeqAndOp = bitOp
-                                                    bitOp = '_SEQAND_'
-                                                for f1 in f:
-                                                    if f1.strip() == '':
-                                                        continue
-                                                    else:
-                                                        ans.append(f1.strip())
-                                                        ansOp.append(bitOp)
-                                                if len(e) > 1:
-                                                    bitOp = oldSeqOrOp
-                                        if len(e) > 1:
-                                            bitOp = oldSeqOrOp
-                                if len(d) > 1:
-                                    bitOp = oldOrOp
-                        if len(c) > 1 :
-                            bitOp = oldAndOp
-        # print(msg , "sc:",sc,"ans:",ans,"ansOp:",ansOp)
+        if self.debug:
+            print("parseCheckPoint>>")
+        if True:
+            q = []
+            qOp = []
+            newq = [sc]
+            newqOp = ['((']
+            operator = ['((','))','_AND_', '_OR_','_SEQAND_','_SEQOR_','_SEQANDINONELINE_','_SEQORINONELINE_']
+            for op in operator:
+                q = newq
+                qOp = newqOp
+                newq = []
+                newqOp = []
+                for idx,item in enumerate(q):
+                    a = item.split(op)
+                    for a1 in a:
+                        if a1.strip() == '':
+                            continue
+                        newq.append(a1.strip())
+                        if len(a) > 1:
+                            newqOp.append(op)
+                        else :
+                            newqOp.append(qOp[idx])
+                if self.debug:
+                    print('op:',op,'newq:',newq)
+                    print('newqOp:',newqOp)
+            ans = newq
+            ansOp = [''] + newqOp
+        else :
+            a = sc.split('((')
+            for a1 in a:
+                if a1.strip() == '':
+                    continue
+                else :
+                    b = a1.split('))')
+                    for b1 in b:
+                        if b1.strip() == '':
+                            continue
+                        else:
+                            c = b1.split('_AND_')
+                            if len(c) > 1 :
+                                oldAndOp = bitOp
+                                bitOp = '_AND_'
+                            for c1 in c:
+                                if c1.strip() == '':
+                                    continue
+                                else :
+                                    d = c1.split('_OR_')
+                                    if  len(d) > 1:
+                                        oldOrOp = bitOp
+                                        bitOp = '_OR_'
+                                    for d1 in d:
+                                        if d1.strip() == '':
+                                            continue
+                                        else:
+                                            e = d1.split('_SEQOR_')
+                                            if  len(e) > 1:
+                                                oldSeqOrOp = bitOp
+                                                bitOp = '_SEQOR_'
+                                            for e1 in e:
+                                                if e1.strip() == '':
+                                                    continue
+                                                else:
+                                                    f = e1.split('_SEQAND_')
+                                                    if  len(f) > 1:
+                                                        oldSeqAndOp = bitOp
+                                                        bitOp = '_SEQAND_'
+                                                    for f1 in f:
+                                                        if f1.strip() == '':
+                                                            continue
+                                                        else:
+                                                            ans.append(f1.strip())
+                                                            ansOp.append(bitOp)
+                                                    if len(f) > 1:
+                                                        bitOp = oldSeqOrOp
+                                            if len(e) > 1:
+                                                bitOp = oldSeqOrOp
+                                    if len(d) > 1:
+                                        bitOp = oldOrOp
+                            if len(c) > 1 :
+                                bitOp = oldAndOp
+        if self.debug:
+            print('msg:',msg , "sc:",sc,"ans:",ans,"ansOp:",ansOp)
         return (ans,ansOp)
 
     def drawMap(self):
@@ -673,7 +738,7 @@ skinparam usecase {
                             if errFlag:
                                 color += '#line:red;line.bold;text:red'
                             else:
-                                color += '#line:green;line.dashed;text:green'
+                                color += '#line:green;line.bold;text:green'
                         if self.brief:
                             totalbody += '    (' + n + ') --> (' + ds['_execution'] + ') ' + color + ' : ' + briefDesc + '\n'
                         else:
@@ -723,7 +788,7 @@ skinparam usecase {
                             if errFlag:
                                 color += '#line:red;line.bold;text:red'
                             else:
-                                color += '#line:green;line.dashed;text:green'
+                                color += '#line:green;line.bold;text:green'
                         
                         if self.brief:
                             totalbody += '    (' + ds['_execution'] + ') --> (' + n + ') ' + color + ' : ' + briefDesc + '\n'
