@@ -524,10 +524,11 @@ class DrawProcessMap :
                                 print("matched-line:",line , 'contents:',contents[line].strip())
                             foundFlag = True
                             if i < len(ds[successOpCheckList]):
-                                if ds[successOpCheckList][i+1].find('SEQ') < 0:  # not SEQ
+                                if ds[successOpCheckList][i+1].find('_SEQ') < 0:  # not SEQ
                                     pos = 0
                                 else :
                                     pos = line
+                            else:
                                 pos = 0
                             break
                         elif ds[successOpCheckList][i].find('INONELINE_') >= 0:  # if IN 1 LINE , it is done.
