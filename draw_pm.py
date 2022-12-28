@@ -189,12 +189,14 @@ class DrawProcessMap :
             if field in ['FromLocation','ToLocation']:
                 row[field] = row[field].replace('[TODAY]',datetime.datetime.today().strftime('%Y-%m-%d'))
                 direction = field.replace('Location','')
-                # print(r[direction+'Type'])
                 if r[direction+'Type'] not in ['text','binary']:
-                    continue
+                    print(field, 'type error:',r[direction+'Type'])
+                    print('warning : we change this value to binary')
+                    r[direction+'Type'] = 'binary'
                 if r[direction+'Location'].strip() == '':
                     continue
                 a = row[field].strip().split(':')
+                print('setValue:',field,'a:',a)
                 if self.local == False and a[0].strip() == 'ssh':
                     hostname = a[1].strip()
                     originFileName = a[2].strip()
@@ -291,7 +293,7 @@ class DrawProcessMap :
                         originFileName = r[direction+'Location'].strip()
                         s = '''stat -c '%y' ''' + originFileName
                     print()
-                    print(direction,s)
+                    print('no ssh or local:',direction,s)
                     out = os.popen(s).read()
                     print('out:',out.strip())
                     grp = dateRe.search(out)
@@ -743,8 +745,8 @@ skinparam usecase {
                         if self.brief:
                             totalbody += '    (' + n + ') --> (' + ds['_execution'] + ') ' + color + ' : ' + briefDesc + '\n'
                         else:
-                            totalbody += '    (' + n + ') --> (' + ds['_execution'] + ') ' + color + ' : desc - ' + desc + '\n'
-                        plantumlbody += '    (' + n + ') --> (' + ds['_execution'] + ') ' + color + ' : desc - ' + desc + '\n'
+                            totalbody += '    (' + n + ') --> (' + ds['_execution'] + ') ' + color + ' : <' + desc + '>\n'
+                        plantumlbody += '    (' + n + ') --> (' + ds['_execution'] + ') ' + color + ' : <' + desc + '>\n'
                 for f in self.D['Project'][p]['Key'][k]['To']:
                     for n in self.D['Project'][p]['Key'][k]['To'][f]['_name']:
                         direction = 'To'
@@ -794,8 +796,8 @@ skinparam usecase {
                         if self.brief:
                             totalbody += '    (' + ds['_execution'] + ') --> (' + n + ') ' + color + ' : ' + briefDesc + '\n'
                         else:
-                            totalbody += '    (' + ds['_execution'] + ') --> (' + n + ') ' + color + ' : desc - ' + desc + '\n'
-                        plantumlbody += '    (' + ds['_execution'] + ') --> (' + n + ') ' + color + ' : desc - ' + desc + '\n'
+                            totalbody += '    (' + ds['_execution'] + ') --> (' + n + ') ' + color + ' : <' + desc + '>\n'
+                        plantumlbody += '    (' + ds['_execution'] + ') --> (' + n + ') ' + color + ' : <' + desc + '>\n'
             totalbody += '  }\n'
             plantumltail = ''
             plantumltail += '@enduml' + '\n'
