@@ -67,6 +67,7 @@ class DrawProcessMap :
         self.D['Group'] = {}
         self.D['Key'] = {}
         self.D['Replace'] = {}
+        self.virticalDirectionFlag = False
         with open(self.input,'r', newline='') as csvfile:
             reader = csv.DictReader(csvfile)
             print('fieldnames:',reader.fieldnames)
@@ -74,6 +75,9 @@ class DrawProcessMap :
                 if 'Project' not in r:
                     print("Error : Project column should be exist in this csv file.",r)
                     quit(4)
+                print('VirticalDirection:',r.get('Virtical',''))
+                if r.get('Virtical','') == 'O':
+                    self.virticalDirectionFlag = True
                 tmp = r['Project'].strip()
                 if not tmp or tmp[0] == '#':
                     continue
@@ -650,7 +654,8 @@ class DrawProcessMap :
         totalhdr = ''
         totalhdr += "```plantuml\n"
         totalhdr += '@startuml total.png\n'
-        totalhdr += 'left to right direction' + '\n'
+        if self.virticalDirectionFlag == False:
+            totalhdr += 'left to right direction' + '\n'
         totalhdr += '''
 skinparam usecase {
     BackgroundColor<< Execution >> YellowGreen
@@ -681,7 +686,9 @@ skinparam usecase {
             plantumlhdr = ''
             plantumlhdr += "```plantuml\n"
             plantumlhdr += '@startuml ' + p + '.png\n'
-            plantumlhdr += 'left to right direction' + '\n'
+            print('self.virticalDirectionFlag:', self.virticalDirectionFlag)
+            if self.virticalDirectionFlag == False:
+                plantumlhdr += 'left to right direction' + '\n'
             plantumlbody = ''
             totalbody += '  rectangle ' + p + ' {\n'
             usecaseExecutionSet = set()
