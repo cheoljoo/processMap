@@ -1,0 +1,18 @@
+Project,From,Execution,To,FromLocation,FromSuccessCheckPoint,FromFailCheckPoint,FromShowCheckPoint,FromType,FromLastTime,FromResult,FromDescription,ToLocation,ToSuccessCheckPoint,ToFailCheckPoint,ToShowCheckPoint,ToType,ToLastTime,ToResult,ToDescription,Periodic,Replace,Description,Virtical
+LDAP,weekly_name_DB,ldap_member_cmu.py,list.csv,name.csv,,,,,,,,list.csv,,,,text,,,,,,remove lgpartners,O
+LDAP,additional_user_id,ldap_member_cmu.py,,id.other.list,,,,text,,,,list.csv,,,,text,,,,,,add another department member,
+PROJECTS,restapi_gitlab,mod-project.py,mod-projects.json,,,,,binary,,,,mod-projects.json,,,,text,,,,,,get projects information\n(12 sec),
+PROJECTS,mod-projects.json,mod-fork.py,mod-forks.json,mod-projects.json,,,,text,,,,mod-forks.json,,,,text,,,,,,get forked information from each project\n(1 min),
+ProcessMap,mouse-processmap.csv,draw_pm.py,total.md,mouse-processmap.csv,,,,text,,,,,,,,text,,,,,,map of running processes,
+PROJECTS,restapi_gitlab,mod-chosen.py,mod-chosen-projects.json,,,,,text,,,,mod-chosen-projects.json,,,,text,,,,,,get chosen projects\n(15 sec),
+PROJECTS,mod-projects.json,mod-chosen.py,,mod-projects.json,,,,text,,,,,,,,text,,,,,,,
+PROJECTS,mod-forks.json,mod-chosen.py,,mod-forks.json,,,,text,,,,,,,,text,,,,,,,
+PROJECTS,list.csv,mod-chosen.py,,list.csv,,,,text,,,,,,,,text,,,,,,CMU_members,
+PROJECTS,mod-chosen-projects.json,mod-chosen-commit.py,mod-chosen-commits.json,mod-chosen-projects.json,,,,text,,,,mod-chosen-commits.json,,,,text,,,,,,get commits from chosen projects\n(2 sec),
+PROJECTS,mod-projects.json,mod-chosen-commit.py,,mod-projects.json,,,,text,,,,,,,,text,,,,,,,
+PROJECTS,list.csv,mod-chosen-commit.py,,list.csv,,,,text,,,,,,,,text,,,,,,CMU_members,
+PROJECTS,mod-chosen-commits.json,make-vlm-comment.py,vlm-comment-list.json,mod-chosen-commits.json,,,,text,,,,vlm-comment-list.json,,,,text,,,,,,make vlm comment list from our commits,
+PROJECTS,vlm-comment-list.json,vlm-add-comment.py,vlm-comment-list.csv,vlm-comment-list.json,,,,text,,,,vlm-comment-list.csv,,,,text,,,,,,add comments to jira,
+PROJECTS,vlm-comment-list.csv,vlm-add-comment.py,,,,,,text,,,,,,,,text,,,,,,,
+SLDD-TIGER,vgit,sldd-clone.py,log-auto_test_*SRV*.csv.json,,,,,text,,,vgit clone,,,,,text,,,git log -p --date=iso autotest_SRV.csv   per commit,,,,
+SLDD-TIGER,,sldd-clone.py,show-auto_test_*SRV*.csv.json,,,,,text,,,,,,,,text,,,git show commit  when changed line count is more than zero,,,,

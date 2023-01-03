@@ -1,5 +1,6 @@
 #from jira import JIRA
 #import jira.client
+import json
 import datetime
 import re
 import argparse
@@ -651,6 +652,8 @@ class DrawProcessMap :
 
     def drawMap(self):
         # https://plantuml.com/ko/use-case-diagram
+        with open("draw.json","w") as json_file: 
+            json.dump(self.D,json_file,indent = 4)
         totalhdr = ''
         totalhdr += "```plantuml\n"
         totalhdr += '@startuml total.png\n'
@@ -708,8 +711,13 @@ skinparam usecase {
                     for n in self.D['Project'][p]['Key'][k]['From'][f]['_name']:
                         direction = 'From'
                         ds = self.D['Project'][p]['Key'][k][direction][f]
-                        desc = ds['Description']
-                        briefDesc = ds['Description'][:self.briefMax]
+                        da = []
+                        if ds['Description'].strip() :
+                            da.append(ds['Description'].strip())
+                        if ds[direction+'Description'].strip() :
+                            da.append(ds[direction+'Description'].strip())
+                        desc = '::'.join(da)
+                        briefDesc = desc[:self.briefMax]
                         errFlag = False
                         color = ''
                         if ds[direction+'Type'] in ['text','binary']:
@@ -750,7 +758,7 @@ skinparam usecase {
                             else:
                                 color += '#line:green;line.bold;text:green'
                         if self.brief:
-                            totalbody += '    (' + n + ') --> (' + ds['_execution'] + ') ' + color + ' : ' + briefDesc + '\n'
+                            totalbody += '    (' + n + ') --> (' + ds['_execution'] + ') ' + color + ' : <' + briefDesc + '>\n'
                         else:
                             totalbody += '    (' + n + ') --> (' + ds['_execution'] + ') ' + color + ' : <' + desc + '>\n'
                         plantumlbody += '    (' + n + ') --> (' + ds['_execution'] + ') ' + color + ' : <' + desc + '>\n'
@@ -758,8 +766,13 @@ skinparam usecase {
                     for n in self.D['Project'][p]['Key'][k]['To'][f]['_name']:
                         direction = 'To'
                         ds = self.D['Project'][p]['Key'][k][direction][f]
-                        desc = ds['Description']
-                        briefDesc = ds['Description'][:self.briefMax]
+                        da = []
+                        if ds['Description'].strip() :
+                            da.append(ds['Description'].strip())
+                        if ds[direction+'Description'].strip() :
+                            da.append(ds[direction+'Description'].strip())
+                        desc = '::'.join(da)
+                        briefDesc = desc[:self.briefMax]
                         errFlag = False
                         color = ''
                         if ds[direction+'Type'] in ['text','binary']:
@@ -801,7 +814,7 @@ skinparam usecase {
                                 color += '#line:green;line.bold;text:green'
                         
                         if self.brief:
-                            totalbody += '    (' + ds['_execution'] + ') --> (' + n + ') ' + color + ' : ' + briefDesc + '\n'
+                            totalbody += '    (' + ds['_execution'] + ') --> (' + n + ') ' + color + ' : <' + briefDesc + '>\n'
                         else:
                             totalbody += '    (' + ds['_execution'] + ') --> (' + n + ') ' + color + ' : <' + desc + '>\n'
                         plantumlbody += '    (' + ds['_execution'] + ') --> (' + n + ') ' + color + ' : <' + desc + '>\n'
