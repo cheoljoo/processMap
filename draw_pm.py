@@ -688,7 +688,7 @@ skinparam usecase {
         for p in self.D['Project']:
             plantumlhdr = ''
             plantumlhdr += "```plantuml\n"
-            plantumlhdr += '@startuml ' + p + '.png\n'
+            plantumlhdr += '@startuml ' + p.replace('-','_') + '.png\n'
             print('self.virticalDirectionFlag:', self.virticalDirectionFlag)
             if self.virticalDirectionFlag == False:
                 plantumlhdr += 'left to right direction' + '\n'
