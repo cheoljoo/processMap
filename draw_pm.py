@@ -716,8 +716,12 @@ skinparam usecase {
                             da.append(ds['Description'].strip())
                         if ds[direction+'Description'].strip() :
                             da.append(ds[direction+'Description'].strip())
-                        desc = '::'.join(da)
-                        briefDesc = desc[:self.briefMax]
+                        if da:
+                            desc = '<' + '::'.join(da) + '>'
+                            briefDesc = '<' + desc[:self.briefMax] + '>'
+                        else:
+                            desc = '_'
+                            briefDesc = '_'
                         errFlag = False
                         color = ''
                         if ds[direction+'Type'] in ['text','binary']:
@@ -758,10 +762,10 @@ skinparam usecase {
                             else:
                                 color += '#line:green;line.bold;text:green'
                         if self.brief:
-                            totalbody += '    (' + n + ') --> (' + ds['_execution'] + ') ' + color + ' : <' + briefDesc + '>\n'
+                            totalbody += '    (' + n + ') --> (' + ds['_execution'] + ') ' + color + ' : ' + briefDesc + '\n'
                         else:
-                            totalbody += '    (' + n + ') --> (' + ds['_execution'] + ') ' + color + ' : <' + desc + '>\n'
-                        plantumlbody += '    (' + n + ') --> (' + ds['_execution'] + ') ' + color + ' : <' + desc + '>\n'
+                            totalbody += '    (' + n + ') --> (' + ds['_execution'] + ') ' + color + ' : ' + desc + '\n'
+                        plantumlbody += '    (' + n + ') --> (' + ds['_execution'] + ') ' + color + ' : ' + desc + '\n'
                 for f in self.D['Project'][p]['Key'][k]['To']:
                     for n in self.D['Project'][p]['Key'][k]['To'][f]['_name']:
                         direction = 'To'
@@ -771,8 +775,12 @@ skinparam usecase {
                             da.append(ds['Description'].strip())
                         if ds[direction+'Description'].strip() :
                             da.append(ds[direction+'Description'].strip())
-                        desc = '::'.join(da)
-                        briefDesc = desc[:self.briefMax]
+                        if da:
+                            desc = '<' + '::'.join(da) + '>'
+                            briefDesc = '<' + desc[:self.briefMax] + '>'
+                        else:
+                            desc = '_'
+                            briefDesc = '_'
                         errFlag = False
                         color = ''
                         if ds[direction+'Type'] in ['text','binary']:
@@ -814,10 +822,10 @@ skinparam usecase {
                                 color += '#line:green;line.bold;text:green'
                         
                         if self.brief:
-                            totalbody += '    (' + ds['_execution'] + ') --> (' + n + ') ' + color + ' : <' + briefDesc + '>\n'
+                            totalbody += '    (' + ds['_execution'] + ') --> (' + n + ') ' + color + ' : ' + briefDesc + '\n'
                         else:
-                            totalbody += '    (' + ds['_execution'] + ') --> (' + n + ') ' + color + ' : <' + desc + '>\n'
-                        plantumlbody += '    (' + ds['_execution'] + ') --> (' + n + ') ' + color + ' : <' + desc + '>\n'
+                            totalbody += '    (' + ds['_execution'] + ') --> (' + n + ') ' + color + ' : ' + desc + '\n'
+                        plantumlbody += '    (' + ds['_execution'] + ') --> (' + n + ') ' + color + ' : ' + desc + '\n'
             totalbody += '  }\n'
             plantumltail = ''
             plantumltail += '@enduml' + '\n'
