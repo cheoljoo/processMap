@@ -73,6 +73,11 @@ class DrawProcessMap :
             reader = csv.DictReader(csvfile)
             print('fieldnames:',reader.fieldnames)
             for r in reader:
+                for rk,rv in r.items():
+                    if rv.find('\n') >= 0:
+                        print('!!RR' , rk,rv,'1[',r[rk],']',sep='')
+                        r[rk] = rv.replace('\n','\\n')
+                        print('!!RR' , rk,rv,'2[',r[rk],']',sep='')
                 if 'Project' not in r:
                     print("Error : Project column should be exist in this csv file.",r)
                     quit(4)
