@@ -694,6 +694,17 @@ skinparam usecase {
             plantumlhdr = ''
             plantumlhdr += "```plantuml\n"
             plantumlhdr += '@startuml ' + p.replace('-','_') + '.png\n'
+            plantumlhdr += '''
+skinparam usecase {
+    BackgroundColor<< Execution >> YellowGreen
+    BorderColor<< Execution >> YellowGreen
+
+    BackgroundColor<< Email >> LightSeaGreen
+    BorderColor<< Email >> LightSeaGreen
+
+    ArrowColor Olive
+}
+            '''
             print('self.virticalDirectionFlag:', self.virticalDirectionFlag)
             if self.virticalDirectionFlag == False:
                 plantumlhdr += 'left to right direction' + '\n'
@@ -711,6 +722,7 @@ skinparam usecase {
                         usecaseExecutionSet.add(self.D['Project'][p]['Key'][k]['To'][f]['_execution'])
             for u in usecaseExecutionSet:
                 totalbody += '    usecase (' + u  + ') as (' + u + ') << Execution >>\n'
+                plantumlbody += '    usecase (' + u  + ') as (' + u + ') << Execution >>\n'
             for k in self.D['Project'][p]['Key']:
                 for f in self.D['Project'][p]['Key'][k]['From']:
                     for n in self.D['Project'][p]['Key'][k]['From'][f]['_name']:
