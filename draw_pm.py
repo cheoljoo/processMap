@@ -675,13 +675,13 @@ skinparam usecase {
     ArrowColor Olive
 }
         '''
-        for g in self.D['Group']:
+        for g in sorted(self.D['Group']):
             if g == 'None':
                 continue
             totalhdr += 'package ' + g + ' {\n'
             gSet = set()
-            for g2 in self.D['Group'][g]:
-                for g3 in self.D['Group'][g][g2]:
+            for g2 in sorted(self.D['Group'][g]):
+                for g3 in sorted(self.D['Group'][g][g2]):
                     if g3 not in gSet:
                         if g == 'email':
                             totalhdr += '    usecase (' + g3 + ') as (' + g3 + ') << Email >>\n'
@@ -690,7 +690,7 @@ skinparam usecase {
                         gSet.add(g3)
             totalhdr += '}\n'
         totalbody = ''
-        for p in self.D['Project']:
+        for p in sorted(self.D['Project']):
             plantumlhdr = ''
             plantumlhdr += "```plantuml\n"
             plantumlhdr += '@startuml ' + p.replace('-','_') + '.png\n'
@@ -711,21 +711,21 @@ skinparam usecase {
             plantumlbody = ''
             totalbody += '  rectangle ' + p + ' {\n'
             usecaseExecutionSet = set()
-            for k in self.D['Project'][p]['Key']:
-                for f in self.D['Project'][p]['Key'][k]['From']:
-                    for n in self.D['Project'][p]['Key'][k]['From'][f]['_name']:
+            for k in sorted(self.D['Project'][p]['Key']):
+                for f in sorted(self.D['Project'][p]['Key'][k]['From']):
+                    for n in sorted(self.D['Project'][p]['Key'][k]['From'][f]['_name']):
                         # plantumlbody += '    (' + n + ') --> (' + self.D['Project'][p]['Key'][k]['From'][f]['_execution'] + ') : desc - ' + self.D['Project'][p]['Key'][k]['From'][f]['Description'] + '\n'
                         usecaseExecutionSet.add(self.D['Project'][p]['Key'][k]['From'][f]['_execution'])
-                for f in self.D['Project'][p]['Key'][k]['To']:
-                    for n in self.D['Project'][p]['Key'][k]['To'][f]['_name']:
+                for f in sorted(self.D['Project'][p]['Key'][k]['To']):
+                    for n in sorted(self.D['Project'][p]['Key'][k]['To'][f]['_name']):
                         # plantumlbody += '    (' + self.D['Project'][p]['Key'][k]['To'][f]['_execution'] + ') --> (' + n + ') : desc - ' + self.D['Project'][p]['Key'][k]['To'][f]['Description'] + '\n'
                         usecaseExecutionSet.add(self.D['Project'][p]['Key'][k]['To'][f]['_execution'])
             for u in usecaseExecutionSet:
                 totalbody += '    usecase (' + u  + ') as (' + u + ') << Execution >>\n'
                 plantumlbody += '    usecase (' + u  + ') as (' + u + ') << Execution >>\n'
-            for k in self.D['Project'][p]['Key']:
-                for f in self.D['Project'][p]['Key'][k]['From']:
-                    for n in self.D['Project'][p]['Key'][k]['From'][f]['_name']:
+            for k in sorted(self.D['Project'][p]['Key']):
+                for f in sorted(self.D['Project'][p]['Key'][k]['From']):
+                    for n in sorted(self.D['Project'][p]['Key'][k]['From'][f]['_name']):
                         direction = 'From'
                         ds = self.D['Project'][p]['Key'][k][direction][f]
                         da = []
@@ -783,8 +783,8 @@ skinparam usecase {
                         else:
                             totalbody += '    (' + n + ') --> (' + ds['_execution'] + ') ' + color + ' : ' + desc + '\n'
                         plantumlbody += '    (' + n + ') --> (' + ds['_execution'] + ') ' + color + ' : ' + desc + '\n'
-                for f in self.D['Project'][p]['Key'][k]['To']:
-                    for n in self.D['Project'][p]['Key'][k]['To'][f]['_name']:
+                for f in sorted(self.D['Project'][p]['Key'][k]['To']):
+                    for n in sorted(self.D['Project'][p]['Key'][k]['To'][f]['_name']):
                         direction = 'To'
                         ds = self.D['Project'][p]['Key'][k][direction][f]
                         da = []
