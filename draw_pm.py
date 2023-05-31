@@ -720,7 +720,7 @@ skinparam usecase {
                     for n in sorted(self.D['Project'][p]['Key'][k]['To'][f]['_name']):
                         # plantumlbody += '    (' + self.D['Project'][p]['Key'][k]['To'][f]['_execution'] + ') --> (' + n + ') : desc - ' + self.D['Project'][p]['Key'][k]['To'][f]['Description'] + '\n'
                         usecaseExecutionSet.add(self.D['Project'][p]['Key'][k]['To'][f]['_execution'])
-            for u in usecaseExecutionSet:
+            for u in sorted(usecaseExecutionSet):
                 totalbody += '    usecase (' + u  + ') as (' + u + ') << Execution >>\n'
                 plantumlbody += '    usecase (' + u  + ') as (' + u + ') << Execution >>\n'
             for k in sorted(self.D['Project'][p]['Key']):
