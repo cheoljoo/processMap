@@ -1,0 +1,4 @@
+Project,From,Execution,To,FromLocation,FromSuccessCheckPoint,FromFailCheckPoint,FromShowCheckPoint,FromType,FromLastTime,FromResult,FromDescription,ToLocation,ToSuccessCheckPoint,ToFailCheckPoint,ToShowCheckPoint,ToType,ToLastTime,ToResult,ToDescription,Periodic,Replace,Description,Virtical
+OnAir,DLT,dlt-receive -a localhost,pipe-dlt-receive,,,,,text,,,receive DLT msg in realtime,,,,,text,,,dynamic log,,,,O
+OnAir,pipe-dlt-receive,ALOGA/rcwmie,pipe-RunCommandWhenMeet,,,,,text,,,dynamic log\n[[http://vlm.lge.com/issue/browse/TIGER-23521 TIGER-23521]],,,,,text,,,the result of running command\nwhen meet the condition\ninengineering image,,,,
+OnAir,pipe-RunCommandWhenMeet,DLT,ALOGA/data_dlt/*.dlt ,,,,,text,,,the result of running command\nwhen meet the condition\ninengineering image,,,,,text,,,send run results to DLT,,,,

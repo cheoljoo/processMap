@@ -20,3 +20,6 @@ brief:
 collab: 
 	python3 dashboard_callab.py --authname your_collab_id --authpasswd your_collab_passwd
 	# cp total.md ../memo
+
+simple:
+	python3 draw_pm.py --authname your_host_id --authpasswd your_host_passwd --input=simple.processmap.csv
