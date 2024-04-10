@@ -9,13 +9,8 @@ import os
 import glob
 import csv
 import sys
+import shutil
 #from atlassian import Jira
-
-import email, smtplib, ssl
-from email import encoders
-from email.mime.base import MIMEBase
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 
 # - 특정 조건 : 그 사람 (최근 일주일)
 #- 모든 ticket중에서 "그 사람"이 comments를 남긴 내용중에 tiger_weekly_report 이 comments의 첫줄에 적은 ticket들에 적은 comments를 출력한다.
@@ -24,9 +19,10 @@ from email.mime.text import MIMEText
 debug = 0
 
 class DrawProcessMap :
-    def __init__(self , outdir,input,id,passwd,debug,brief,local,plantumlserver,plantumlid,plantumlfileserveruser,plantumlfileserverpasswd,plantumlfileserverdirectory):
-        self.plantumlserver = plantumlserver
+    def __init__(self , outdir,input,id,passwd,debug,brief,local,plantumlproxyserver,plantumlid,plantumlfileserver,plantumlfileserveruser,plantumlfileserverpasswd,plantumlfileserverdirectory):
+        self.plantumlproxyserver = plantumlproxyserver
         self.plantumlid = plantumlid
+        self.plantumlfileserver = plantumlfileserver
         self.plantumlfileserveruser = plantumlfileserveruser
         self.plantumlfileserverpasswd = plantumlfileserverpasswd
         self.plantumlfileserverdirectory = plantumlfileserverdirectory
@@ -44,6 +40,7 @@ class DrawProcessMap :
         os.makedirs('server-data',exist_ok=True)
         self.D = {}
         self.Cnt = 1
+        self.mdList = []
         # key : ```from~~~execution~~~to```
         # D['Project'][Project]['Key'][Key]['From'][from]
         # D['Project'][Project]['Key'][Key]['From'][from]['To'] = 
@@ -928,13 +925,25 @@ skinparam usecase {
             plantumltail = ''
             plantumltail += '@enduml' + '\n'
             plantumltail += "```\n"
-            f = open(self.outdir + '/' + p + '.md','w')
+            if self.plantumlproxyserver:
+                filename = self.outdir + '/' + '{id}-{infile}-{project}.md'.format(id=self.plantumlid,infile=self.input.split('/')[-1],project=p)
+            else:
+                filename = self.outdir + '/' + '{project}.md'.format(id=self.plantumlid,infile=self.input.split('/')[-1],project=p)
+            self.mdList.append(filename)
+            print('write:',filename)
+            f = open(filename,'w')
             f.write(plantumlhdr + plantumlbody + plantumltail)
             f.close()
         totaltail = ''
         totaltail += '@enduml' + '\n'
         totaltail += "```\n"
-        f = open(self.outdir + '/' + 'total.md','w')
+        if self.plantumlproxyserver:
+            filename = self.outdir + '/' + '{id}-{infile}-total.md'.format(id=self.plantumlid,infile=self.input.split('/')[-1])
+        else:
+            filename = self.outdir + '/' + 'total.md'.format(id=self.plantumlid,infile=self.input.split('/')[-1])
+        self.mdList.append(filename)
+        print('write:',filename)
+        f = open(filename,'w')
         # usecaseExecutionHdr = ''
         # for u in usecaseExecutionSet:
         #     usecaseExecutionHdr += 'usecase (' + u + ')\n'
@@ -943,6 +952,20 @@ skinparam usecase {
         # f.write(totalhdr + usecaseExecutionHdr + totalbody + totaltail)
         f.write(totalhdr + totalbody + totaltail)
         f.close()
+        if self.plantumlproxyserver:
+            timeout = 60
+            cmd = '''timeout {to} sshpass -p "{passwd}" scp -o StrictHostKeyChecking=no {dir}/* {user}@{server}:~/{up}'''.format(to=timeout,passwd=self.plantumlfileserverpasswd,user=self.plantumlfileserveruser,server=self.plantumlfileserver,dir=self.outdir,up=self.plantumlfileserverdirectory)
+            print('upload:',cmd)
+            ret = os.system(cmd)
+            print('upload return :',ret)
+             #print('md',self.mdList)
+            if not ret:
+                print('==== direct plantuml proxy links ===')
+                for md in self.mdList:
+                    url =  '''  !-> http://{proxy}/proxy?fmt=svg&src=http://{file}/{sdir}/{md}'''.format(proxy=self.plantumlproxyserver,file=self.plantumlfileserver,sdir=self.plantumlfileserverdirectory,md=md.split('/')[-1])
+                    print(url)
+                print('====================================')
+
 
  
 
@@ -977,9 +1000,10 @@ if (__name__ == "__main__"):
     desc = '''\
 input file : csv or json file
 
-if you want to use plantumlserver , 
-  --plantumlserver=better.life.com
+if you want to use plantuml proxy server , 
+  --plantumlproxyserver=better.life.com:18080
   --plantumlid=your_id                                        [your_id]
+  --plantumlfileserver=file.server.com
   --plantumlfileserveruser=[file.server.com's user id]
   --plantumlfileserverpasswd=[file.server.com's user password]
   --plantumlfileserverdirectory=DailyTest/zip-plantuml        [file.server.com's directory to save]
@@ -1017,8 +1041,9 @@ url =>  http://better.life.com:18080/proxy?fmt=svg&src=http://file.server.com/Da
     parser.add_argument( '--brief', default=False,action="store_true", help='show brief graph')
     parser.add_argument( '--local', default=False,action="store_true", help='just use absolute path instead of ssh')
 
-    parser.add_argument( '--plantumlserver', default='',metavar="<str>", type=str, help=desc)
+    parser.add_argument( '--plantumlproxyserver', default='',metavar="<str>", type=str, help=desc)
     parser.add_argument( '--plantumlid', default='',metavar="<str>", type=str, help=desc)
+    parser.add_argument( '--plantumlfileserver', default='',metavar="<str>", type=str, help=desc)
     parser.add_argument( '--plantumlfileserveruser', default='',metavar="<str>", type=str, help=desc)
     parser.add_argument( '--plantumlfileserverpasswd', default='',metavar="<str>", type=str, help=desc)
     parser.add_argument( '--plantumlfileserverdirectory', default='',metavar="<str>", type=str, help=desc)
@@ -1027,6 +1052,7 @@ url =>  http://better.life.com:18080/proxy?fmt=svg&src=http://file.server.com/Da
 
 
 
+    shutil.rmtree(args.outdir,ignore_errors=True)
     os.makedirs(args.outdir,exist_ok=True)
-    dpm = DrawProcessMap(outdir=args.outdir,input= args.input,id=args.authname,passwd=args.authpasswd,debug=args.debug,brief=args.brief,local=args.local,plantumlserver=args.plantumlserver,plantumlid=args.plantumlid,plantumlfileserveruser=args.plantumlfileserveruser,plantumlfileserverpasswd=args.plantumlfileserverpasswd,plantumlfileserverdirectory=args.plantumlfileserverdirectory)
+    dpm = DrawProcessMap(outdir=args.outdir,input= args.input,id=args.authname,passwd=args.authpasswd,debug=args.debug,brief=args.brief,local=args.local,plantumlproxyserver=args.plantumlproxyserver,plantumlid=args.plantumlid,plantumlfileserver=args.plantumlfileserver,plantumlfileserveruser=args.plantumlfileserveruser,plantumlfileserverpasswd=args.plantumlfileserverpasswd,plantumlfileserverdirectory=args.plantumlfileserverdirectory)
     dpm.drawMap()
