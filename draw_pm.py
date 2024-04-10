@@ -24,7 +24,14 @@ from email.mime.text import MIMEText
 debug = 0
 
 class DrawProcessMap :
-    def __init__(self , input,id,passwd,debug,brief,local):
+    def __init__(self , outdir,input,id,passwd,debug,brief,local,plantumlserver,plantumlid,plantumlfileserveruser,plantumlfileserverpasswd,plantumlfileserverdirectory):
+        self.plantumlserver = plantumlserver
+        self.plantumlid = plantumlid
+        self.plantumlfileserveruser = plantumlfileserveruser
+        self.plantumlfileserverpasswd = plantumlfileserverpasswd
+        self.plantumlfileserverdirectory = plantumlfileserverdirectory
+        self.plantumlfileserverdirectory = plantumlfileserverdirectory[:-1] if plantumlfileserverdirectory and plantumlfileserverdirectory[-1] == '/' else plantumlfileserverdirectory
+        self.outdir = outdir[:-1] if outdir and outdir[-1] == '/' else outdir
         self.input = input
         self.id = id
         self.passwd = passwd
@@ -69,10 +76,71 @@ class DrawProcessMap :
         self.D['Key'] = {}
         self.D['Replace'] = {}
         self.virticalDirectionFlag = False
-        with open(self.input,'r', newline='') as csvfile:
-            reader = csv.DictReader(csvfile)
-            print('fieldnames:',reader.fieldnames)
+        self.headerDict =     {
+            "Project": "",
+            "From": "",
+            "Execution": "",
+            "To": "",
+            "FromLocation": "",
+            "FromSuccessCheckPoint": "",
+            "FromFailCheckPoint": "",
+            "FromShowCheckPoint": "",
+            "FromType": "",
+            "FromLastTime": "",
+            "FromResult": "",
+            "FromDescription": "",
+            "ToLocation": "",
+            "ToSuccessCheckPoint": "",
+            "ToFailCheckPoint": "",
+            "ToShowCheckPoint": "",
+            "ToType": "",
+            "ToLastTime": "",
+            "ToResult": "",
+            "ToDescription": "",
+            "Periodic": "",
+            "Replace": "",
+            "Description": "",
+            "Virtical": ""
+        }
+        self.wjson = []
+        self.isCSV = True
+        if self.input.strip().endswith('.csv'):
+            self.isCSV = True
+        elif self.input.strip().endswith('.json'):
+            self.isCSV = False
+        else:
+            print('!! error : it supports csv and json extension :', self.input,file=sys.stderr)
+            quit(4)
+
+        with open(self.input,'r', newline='') as inputf:
+            print('read :',self.input)
+            if self.isCSV:
+                reader = csv.DictReader(inputf)
+                print('fieldnames:',reader.fieldnames)
+                for rf in reader.fieldnames:
+                    if rf not in self.headerDict:
+                        print('error: (csv) check header between self.headerDict and csv header: reader.fieldnames',rf,file=sys.stderr)
+                for rf in self.headerDict.keys():
+                    if rf not in reader.fieldnames:
+                        print('error: (csv) check header between self.headerDict and csv header: self.headerDict',rf,file=sys.stderr)
+            else:
+                reader = json.load(inputf)
+                for r in reader:
+                    if not r.get('Project','') or not r.get('Execution',''):
+                        print('error: (json) you should have Project and Execution field in ',r,file=sys.stderr)
+                        quit(3)
+                    if not r.get('From','') and not r.get('To',''):
+                        print('error: (json) you should have either From or To field in ',r,file=sys.stderr)
+                        quit(3)
+                    for rf in r.keys():
+                        if rf not in self.headerDict:
+                            print('error: (json) check header between self.headerDict and json keys: json key',rf,file=sys.stderr)
+                            quit(3)
+                    for k,v in self.headerDict.items():
+                        if k not in r:
+                            r[k] = v
             for r in reader:
+                self.wjson.append(r)
                 for rk,rv in r.items():
                     if rv.find('\n') >= 0:
                         print('!!RR' , rk,rv,'1[',r[rk],']',sep='')
@@ -81,7 +149,7 @@ class DrawProcessMap :
                 if 'Project' not in r:
                     print("Error : Project column should be exist in this csv file.",r)
                     quit(4)
-                print('VirticalDirection:',r.get('Virtical',''))
+                 #print('VirticalDirection:',r.get('Virtical',''))
                 if r.get('Virtical','') == 'O':
                     self.virticalDirectionFlag = True
                 tmp = r['Project'].strip()
@@ -111,6 +179,19 @@ class DrawProcessMap :
                 else:
                     self.setValue(r)
         traverseFile("data.py",self.D,'D',"w")
+        if self.isCSV:
+            with open(self.input+'.json' , 'w') as jsonf:
+                print('write(json):',self.input+'.json', '<- self.wjson')
+                json.dump(self.wjson,jsonf,indent = 4)
+        else:
+            fieldnames = list(self.headerDict.keys())
+            print('fieldname for csv :',fieldnames)
+            with open(self.input+'.csv' , 'w',newline='') as csvf:
+                print('write(csv):',self.input+'.csv', '<- self.wjson')
+                writer = csv.DictWriter(csvf, fieldnames=fieldnames)
+                writer.writeheader()
+                for wj in self.wjson:
+                    writer.writerow(wj)
 
     def readReplaceFile(self,filename):
         if filename in self.D['Replace']:
@@ -847,13 +928,13 @@ skinparam usecase {
             plantumltail = ''
             plantumltail += '@enduml' + '\n'
             plantumltail += "```\n"
-            f = open(p + '.md','w')
+            f = open(self.outdir + '/' + p + '.md','w')
             f.write(plantumlhdr + plantumlbody + plantumltail)
             f.close()
         totaltail = ''
         totaltail += '@enduml' + '\n'
         totaltail += "```\n"
-        f = open('total.md','w')
+        f = open(self.outdir + '/' + 'total.md','w')
         # usecaseExecutionHdr = ''
         # for u in usecaseExecutionSet:
         #     usecaseExecutionHdr += 'usecase (' + u + ')\n'
@@ -893,11 +974,24 @@ def traverseFile(filename:str,v,start:str,att):
         traverseFD(f,v,start)
 
 if (__name__ == "__main__"):
+    desc = '''\
+input file : csv or json file
+
+if you want to use plantumlserver , 
+  --plantumlserver=better.life.com
+  --plantumlid=your_id                                        [your_id]
+  --plantumlfileserveruser=[file.server.com's user id]
+  --plantumlfileserverpasswd=[file.server.com's user password]
+  --plantumlfileserverdirectory=DailyTest/zip-plantuml        [file.server.com's directory to save]
+url =>  http://better.life.com:18080/proxy?fmt=svg&src=http://file.server.com/DailyTest/zip-plantuml/your_id-simple.processmap.csv-total.md 
+'''
 
     parser = argparse.ArgumentParser(
         prog=sys.argv[0],
-        description=
-        sys.argv[0] + ' generates plantuml for process map'
+        description= '''
+{s} generates plantuml for process map.
+'''.format(s=sys.argv[0]),
+        usage=desc,
     )
     # group = parser.add_mutually_exclusive_group()
     #group.add_argument("-v", "--verbose", action="store_true")
@@ -917,14 +1011,22 @@ if (__name__ == "__main__"):
         type=str,
         help='host passwd')
 
-    parser.add_argument( '--input', default='processmap.csv',metavar="<csv_filename>", type=str, help='input csv file - default : processmap.csv')
+    parser.add_argument( '--input', default='processmap.csv',metavar="<str>", type=str, help='input csv/json file - default : processmap.csv')
+    parser.add_argument( '--outdir', default='.',metavar="<str>", type=str, help='output directory to have md - default : .')
     parser.add_argument( '--debug', default=False,action="store_true", help='for debug')
     parser.add_argument( '--brief', default=False,action="store_true", help='show brief graph')
     parser.add_argument( '--local', default=False,action="store_true", help='just use absolute path instead of ssh')
+
+    parser.add_argument( '--plantumlserver', default='',metavar="<str>", type=str, help=desc)
+    parser.add_argument( '--plantumlid', default='',metavar="<str>", type=str, help=desc)
+    parser.add_argument( '--plantumlfileserveruser', default='',metavar="<str>", type=str, help=desc)
+    parser.add_argument( '--plantumlfileserverpasswd', default='',metavar="<str>", type=str, help=desc)
+    parser.add_argument( '--plantumlfileserverdirectory', default='',metavar="<str>", type=str, help=desc)
 
     args = parser.parse_args()
 
 
 
-    dpm = DrawProcessMap(input= args.input,id=args.authname,passwd=args.authpasswd,debug=args.debug,brief=args.brief,local=args.local)
+    os.makedirs(args.outdir,exist_ok=True)
+    dpm = DrawProcessMap(outdir=args.outdir,input= args.input,id=args.authname,passwd=args.authpasswd,debug=args.debug,brief=args.brief,local=args.local,plantumlserver=args.plantumlserver,plantumlid=args.plantumlid,plantumlfileserveruser=args.plantumlfileserveruser,plantumlfileserverpasswd=args.plantumlfileserverpasswd,plantumlfileserverdirectory=args.plantumlfileserverdirectory)
     dpm.drawMap()
