@@ -1,0 +1,33 @@
+[
+    {
+        "Project": "OnAir",
+        "From": "DLT",
+        "Execution": "dlt-receive -a localhost",
+        "To": "pipe-dlt-receive",
+        "FromType": "text",
+        "FromDescription": "receive DLT msg in realtime",
+        "ToType": "text",
+        "ToDescription": "dynamic log",
+        "Virtical": "O"
+    },
+    {
+        "Project": "OnAir",
+        "From": "pipe-dlt-receive",
+        "Execution": "ALOGA/rcwmie",
+        "To": "pipe-RunCommandWhenMeet",
+        "FromType": "text",
+        "FromDescription": "dynamic log\\n[[http://vlm.lge.com/issue/browse/TIGER-23521 TIGER-23521]]",
+        "ToType": "text",
+        "ToDescription": "the result of running command\\nwhen meet the condition\\ninengineering image"
+    },
+    {
+        "Project": "OnAir",
+        "From": "pipe-RunCommandWhenMeet",
+        "Execution": "DLT",
+        "To": "ALOGA/data_dlt/*.dlt ",
+        "FromType": "text",
+        "FromDescription": "the result of running command\\nwhen meet the condition\\ninengineering image",
+        "ToType": "text",
+        "ToDescription": "send run results to DLT"
+    }
+]
