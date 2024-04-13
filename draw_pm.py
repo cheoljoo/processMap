@@ -140,9 +140,9 @@ class DrawProcessMap :
                 self.wjson.append(r)
                 for rk,rv in r.items():
                     if rv.find('\n') >= 0:
-                        print('!!RR' , rk,rv,'1[',r[rk],']',sep='')
+                        if self.debug: print('!!RR' , rk,rv,'1[',r[rk],']',sep='')
                         r[rk] = rv.replace('\n','\\n')
-                        print('!!RR' , rk,rv,'2[',r[rk],']',sep='')
+                        if self.debug: print('!!RR' , rk,rv,'2[',r[rk],']',sep='')
                 if 'Project' not in r:
                     print("Error : Project column should be exist in this csv file.",r)
                     quit(4)
@@ -177,14 +177,14 @@ class DrawProcessMap :
                     self.setValue(r)
         traverseFile("data.py",self.D,'D',"w")
         if self.isCSV:
-            with open(self.input+'.json' , 'w') as jsonf:
-                print('write(json):',self.input+'.json', '<- self.wjson')
+            with open('__debug/'+self.input+'.json' , 'w') as jsonf:
+                print('write(json):','__debug/'+self.input+'.json', '<- self.wjson')
                 json.dump(self.wjson,jsonf,indent = 4)
         else:
             fieldnames = list(self.headerDict.keys())
             print('fieldname for csv :',fieldnames)
-            with open(self.input+'.csv' , 'w',newline='') as csvf:
-                print('write(csv):',self.input+'.csv', '<- self.wjson')
+            with open('__debug/'+self.input+'.csv' , 'w',newline='') as csvf:
+                print('write(csv):','__debug/'+self.input+'.csv', '<- self.wjson')
                 writer = csv.DictWriter(csvf, fieldnames=fieldnames)
                 writer.writeheader()
                 for wj in self.wjson:
@@ -1056,5 +1056,6 @@ url =>  http://better.life.com:18080/proxy?fmt=svg&src=http://file.server.com/Da
 
     shutil.rmtree(args.outdir,ignore_errors=True)
     os.makedirs(args.outdir,exist_ok=True)
+    os.makedirs('__debug',exist_ok=True)
     dpm = DrawProcessMap(outdir=args.outdir,input= args.input,id=args.authname,passwd=args.authpasswd,debug=args.debug,brief=args.brief,local=args.local,plantumlproxyserver=args.plantumlproxyserver,plantumlid=args.plantumlid,plantumlfileserver=args.plantumlfileserver,plantumlfileserveruser=args.plantumlfileserveruser,plantumlfileserverpasswd=args.plantumlfileserverpasswd,plantumlfileserverdirectory=args.plantumlfileserverdirectory)
     dpm.drawMap()
