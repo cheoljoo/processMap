@@ -942,7 +942,8 @@ skinparam usecase {
             shutil.copy(self.input,os.path.join(self.outdir,'{id}-{infile}'.format(id=self.plantumlid,infile=self.input.split('/')[-1])))
         else:
             filename = self.outdir + '/' + 'total.md'.format(id=self.plantumlid,infile=self.input.split('/')[-1])
-            shutil.copy(self.input,os.path.join(self.outdir,'{infile}'.format(id=self.plantumlid,infile=self.input.split('/')[-1])))
+            if self.outdir != '.':
+                shutil.copy(self.input,os.path.join(self.outdir,'{infile}'.format(id=self.plantumlid,infile=self.input.split('/')[-1])))
         self.mdList.append(filename)
         print('write:',filename)
         f = open(filename,'w')
