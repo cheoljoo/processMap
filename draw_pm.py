@@ -1052,9 +1052,8 @@ url =>  http://better.life.com:18080/proxy?fmt=svg&src=http://file.server.com/Da
 
     args = parser.parse_args()
 
-
-
-    shutil.rmtree(args.outdir,ignore_errors=True)
+    if args.outdir != '.' and args.outdir != '*':
+        shutil.rmtree(args.outdir,ignore_errors=True)
     os.makedirs(args.outdir,exist_ok=True)
     os.makedirs('__debug',exist_ok=True)
     dpm = DrawProcessMap(outdir=args.outdir,input= args.input,id=args.authname,passwd=args.authpasswd,debug=args.debug,brief=args.brief,local=args.local,plantumlproxyserver=args.plantumlproxyserver,plantumlid=args.plantumlid,plantumlfileserver=args.plantumlfileserver,plantumlfileserveruser=args.plantumlfileserveruser,plantumlfileserverpasswd=args.plantumlfileserverpasswd,plantumlfileserverdirectory=args.plantumlfileserverdirectory)
