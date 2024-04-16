@@ -5,10 +5,15 @@
 # example
 ## example 1
 - input csv:[/simple.processmap.csv](./simple.processmap.csv)  & json[simple.processmap.json](./simple.processmap.json)
+    - make simple-csv
+    - make simple-json
     - ![result_plantuml](img/simple.processmap.png)
 ## example 2
 - input [processMap.csv](./processmap.csv)
     - ![result planguml](img/total.png)
+## example 3
+- input [noexecution.processmap.json](./noexecution.processmap.json)  <- Execution is '_'. it means that Execution will be skipped. so draw From -> To without Execution
+    - ![result planguml](img/noexecution.png)
 
 # description of fields
 - "Project": "OnAir",
@@ -21,6 +26,7 @@
 - "Execution": "dlt-receive -a localhost",
     - it must have value
     - running item
+    - if Execution is '_', it means that Execution will be skipped. so draw From -> To without Execution
 - "To": "pipe-dlt-receive",
     - it must have  "From" or "To".
     - output from "Exection"
