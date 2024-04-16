@@ -799,6 +799,8 @@ skinparam usecase {
                         # plantumlbody += '    (' + self.D['Project'][p]['Key'][k]['To'][f]['_execution'] + ') --> (' + n + ') : desc - ' + self.D['Project'][p]['Key'][k]['To'][f]['Description'] + '\n'
                         usecaseExecutionSet.add(self.D['Project'][p]['Key'][k]['To'][f]['_execution'])
             for u in sorted(usecaseExecutionSet):
+                if u == '_':
+                    continue
                 totalbody += '    usecase (' + u  + ') as (' + u + ') << Execution >>\n'
                 plantumlbody += '    usecase (' + u  + ') as (' + u + ') << Execution >>\n'
             for k in sorted(self.D['Project'][p]['Key']):
@@ -856,11 +858,18 @@ skinparam usecase {
                                 color += '#line:red;line.bold;text:red'
                             else:
                                 color += '#line:green;line.bold;text:green'
-                        if self.brief:
-                            totalbody += '    (' + n + ') --> (' + ds['_execution'] + ') ' + color + ' : ' + briefDesc + '\n'
+                        if ds['_execution'] == '_':
+                            if self.brief:
+                                totalbody += '    (' + n + ') --> (' + ds['To'] + ') ' + color + ' : ' + briefDesc + '\n'
+                            else:
+                                totalbody += '    (' + n + ') --> (' + ds['To'] + ') ' + color + ' : ' + desc + '\n'
+                            plantumlbody += '    (' + n + ') --> (' + ds['To'] + ') ' + color + ' : ' + desc + '\n'
                         else:
-                            totalbody += '    (' + n + ') --> (' + ds['_execution'] + ') ' + color + ' : ' + desc + '\n'
-                        plantumlbody += '    (' + n + ') --> (' + ds['_execution'] + ') ' + color + ' : ' + desc + '\n'
+                            if self.brief:
+                                totalbody += '    (' + n + ') --> (' + ds['_execution'] + ') ' + color + ' : ' + briefDesc + '\n'
+                            else:
+                                totalbody += '    (' + n + ') --> (' + ds['_execution'] + ') ' + color + ' : ' + desc + '\n'
+                            plantumlbody += '    (' + n + ') --> (' + ds['_execution'] + ') ' + color + ' : ' + desc + '\n'
                 for f in sorted(self.D['Project'][p]['Key'][k]['To']):
                     for n in sorted(self.D['Project'][p]['Key'][k]['To'][f]['_name']):
                         direction = 'To'
@@ -916,6 +925,8 @@ skinparam usecase {
                             else:
                                 color += '#line:green;line.bold;text:green'
                         
+                        if ds['_execution'] == '_':
+                            continue
                         if self.brief:
                             totalbody += '    (' + ds['_execution'] + ') --> (' + n + ') ' + color + ' : ' + briefDesc + '\n'
                         else:
