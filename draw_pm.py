@@ -19,7 +19,8 @@ import shutil
 debug = 0
 
 class DrawProcessMap :
-    def __init__(self , outdir,input,id,passwd,debug,brief,local,plantumlproxyserver,plantumlid,plantumlfileserver,plantumlfileserveruser,plantumlfileserverpasswd,plantumlfileserverdirectory):
+    def __init__(self , outdir,input,id,passwd,debug,brief,local,plantumlproxyserver,plantumlid,plantumlfileserver,plantumlfileserveruser,plantumlfileserverpasswd,plantumlfileserverdirectory,png):
+        self.png = png
         self.plantumlproxyserver = plantumlproxyserver
         self.plantumlid = plantumlid
         self.plantumlfileserver = plantumlfileserver
@@ -966,6 +967,16 @@ skinparam usecase {
         # f.write(totalhdr + usecaseExecutionHdr + totalbody + totaltail)
         f.write(totalhdr + totalbody + totaltail)
         f.close()
+        self.pngfiles = []
+        if self.png:
+            for md in self.mdList:
+                url =  '''"http://{proxy}/proxy?fmt=png&src=http://{file}/{sdir}/{md}"'''.format(proxy=self.plantumlproxyserver,file=self.plantumlfileserver,sdir=self.plantumlfileserverdirectory,md=md.split('/')[-1])
+                cmd = '''wget -O {dir}/{png} {url}'''.format(dir=self.outdir,png=md.split('/')[-1].replace('.md','.png'),url=url)
+                print('png:',cmd)
+                ret = os.system(cmd)
+                print('png return :',ret)
+                if not ret :
+                    self.pngfiles.append('''  {dir}/{png}'''.format(dir=self.outdir,png=md.split('/')[-1].replace('.md','.png')))
         if self.plantumlproxyserver:
             timeout = 60
             cmd = '''timeout {to} sshpass -p "{passwd}" scp -o StrictHostKeyChecking=no {dir}/* {user}@{server}:~/{up}'''.format(to=timeout,passwd=self.plantumlfileserverpasswd,user=self.plantumlfileserveruser,server=self.plantumlfileserver,dir=self.outdir,up=self.plantumlfileserverdirectory)
@@ -979,6 +990,15 @@ skinparam usecase {
                     url =  '''  !-> http://{proxy}/proxy?fmt=svg&src=http://{file}/{sdir}/{md}'''.format(proxy=self.plantumlproxyserver,file=self.plantumlfileserver,sdir=self.plantumlfileserverdirectory,md=md.split('/')[-1])
                     print(url)
                 print('====================================')
+            else :
+                print('upload fail : please check server - performance or alive')
+
+        if self.png:
+            print('==== png files ===')
+            for md in self.pngfiles:
+                print(md)
+            print('====================================')
+                
 
 
  
@@ -1061,6 +1081,7 @@ url =>  http://better.life.com:18080/proxy?fmt=svg&src=http://file.server.com/Da
     parser.add_argument( '--plantumlfileserveruser', default='',metavar="<str>", type=str, help=desc)
     parser.add_argument( '--plantumlfileserverpasswd', default='',metavar="<str>", type=str, help=desc)
     parser.add_argument( '--plantumlfileserverdirectory', default='',metavar="<str>", type=str, help=desc)
+    parser.add_argument( '--png', default=False,action="store_true", help='generates png files')
 
     args = parser.parse_args()
 
@@ -1068,5 +1089,5 @@ url =>  http://better.life.com:18080/proxy?fmt=svg&src=http://file.server.com/Da
         shutil.rmtree(args.outdir,ignore_errors=True)
     os.makedirs(args.outdir,exist_ok=True)
     os.makedirs('__debug',exist_ok=True)
-    dpm = DrawProcessMap(outdir=args.outdir,input= args.input,id=args.authname,passwd=args.authpasswd,debug=args.debug,brief=args.brief,local=args.local,plantumlproxyserver=args.plantumlproxyserver,plantumlid=args.plantumlid,plantumlfileserver=args.plantumlfileserver,plantumlfileserveruser=args.plantumlfileserveruser,plantumlfileserverpasswd=args.plantumlfileserverpasswd,plantumlfileserverdirectory=args.plantumlfileserverdirectory)
+    dpm = DrawProcessMap(outdir=args.outdir,input= args.input,id=args.authname,passwd=args.authpasswd,debug=args.debug,brief=args.brief,local=args.local,plantumlproxyserver=args.plantumlproxyserver,plantumlid=args.plantumlid,plantumlfileserver=args.plantumlfileserver,plantumlfileserveruser=args.plantumlfileserveruser,plantumlfileserverpasswd=args.plantumlfileserverpasswd,plantumlfileserverdirectory=args.plantumlfileserverdirectory,png=args.png)
     dpm.drawMap()
