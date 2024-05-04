@@ -979,7 +979,7 @@ skinparam usecase {
                     self.pngfiles.append('''  {dir}/{png}'''.format(dir=self.outdir,png=md.split('/')[-1].replace('.md','.png')))
         if self.plantumlproxyserver:
             timeout = 60
-            cmd = '''timeout {to} sshpass -p "{passwd}" scp -o StrictHostKeyChecking=no {dir}/* {user}@{server}:~/{up}'''.format(to=timeout,passwd=self.plantumlfileserverpasswd,user=self.plantumlfileserveruser,server=self.plantumlfileserver,dir=self.outdir,up=self.plantumlfileserverdirectory)
+            cmd = '''timeout {to} sshpass -p "{passwd}" scp -o StrictHostKeyChecking=no {dir}/* {user}@{server}:~/{up}'''.format(to=timeout,passwd=self.plantumlfileserverpasswd,user=self.plantumlfileserveruser,server=self.plantumlfileserver.split(':')[0],dir=self.outdir,up=self.plantumlfileserverdirectory)
             print('upload:',cmd)
             ret = os.system(cmd)
             print('upload return :',ret)
