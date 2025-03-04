@@ -18,6 +18,23 @@ import shutil
 
 debug = 0
 
+import string
+from zlib import compress
+import base64
+maketrans = bytes.maketrans
+plantuml_alphabet = string.digits + string.ascii_uppercase + string.ascii_lowercase + '-_'
+base64_alphabet   = string.ascii_uppercase + string.ascii_lowercase + string.digits + '+/'
+b64_to_plantuml = maketrans(base64_alphabet.encode('utf-8'), plantuml_alphabet.encode('utf-8'))
+# plantuml encoding
+def deflate_and_encode(plantuml_text):
+    """
+    plantuml encoding
+    zlib compress the plantuml text and encode it for the plantuml server.
+    """
+    zlibbed_str = compress(plantuml_text.encode('utf-8'))
+    compressed_string = zlibbed_str[2:-4]
+    return base64.b64encode(compressed_string).translate(b64_to_plantuml).decode('utf-8')
+
 class DrawProcessMap :
     def __init__(self , outdir,input,id,passwd,debug,brief,local,plantumlproxyserver,plantumlid,plantumlfileserver,plantumlfileserveruser,plantumlfileserverpasswd,plantumlfileserverdirectory,png):
         self.png = png
@@ -738,8 +755,9 @@ class DrawProcessMap :
         # https://plantuml.com/ko/use-case-diagram
         with open("draw.json","w") as json_file: 
             json.dump(self.D,json_file,indent = 4)
+        totalfirsthdr = ''
+        totalfirsthdr += "```plantuml\n"
         totalhdr = ''
-        totalhdr += "```plantuml\n"
         totalhdr += '@startuml total.png\n'
         if self.virticalDirectionFlag == False:
             totalhdr += 'left to right direction' + '\n'
@@ -770,8 +788,9 @@ skinparam usecase {
             totalhdr += '}\n'
         totalbody = ''
         for p in sorted(self.D['Project']):
+            plantumlfirsthdr = ''
+            plantumlfirsthdr += "```plantuml\n"
             plantumlhdr = ''
-            plantumlhdr += "```plantuml\n"
             plantumlhdr += '@startuml ' + p.replace('-','_') + '.png\n'
             plantumlhdr += '''
 skinparam usecase {
@@ -936,7 +955,8 @@ skinparam usecase {
             totalbody += '  }\n'
             plantumltail = ''
             plantumltail += '@enduml' + '\n'
-            plantumltail += "```\n"
+            plantumllasttail = ''
+            plantumllasttail += "```\n"
             if self.plantumlproxyserver:
                 filename = self.outdir + '/' + '{id}-{infile}-{project}.md'.format(id=self.plantumlid,infile=self.input.split('/')[-1],project=p)
             else:
@@ -944,11 +964,20 @@ skinparam usecase {
             self.mdList.append(filename)
             print('write:',filename)
             f = open(filename,'w')
-            f.write(plantumlhdr + plantumlbody + plantumltail)
+            f.write(plantumlfirsthdr + plantumlhdr + plantumlbody + plantumltail + plantumllasttail)
             f.close()
+            with open(filename+'.deflate','w') as f:
+                deflatedLink = '''
+- svg through tiger02.lge.com server
+  - ![](http://tiger02.lge.com:18080/svg/{plantuml})
+- png through www.plantuml.com
+  - ![](https://www.plantuml.com/plantuml/png/{plantuml})
+  '''.format( plantuml=deflate_and_encode(plantumlhdr + plantumlbody + plantumltail))
+                f.write(deflatedLink)
         totaltail = ''
         totaltail += '@enduml' + '\n'
-        totaltail += "```\n"
+        totallasttail = ''
+        totallasttail += "```\n"
         if self.plantumlproxyserver:
             filename = self.outdir + '/' + '{id}-{infile}-total.md'.format(id=self.plantumlid,infile=self.input.split('/')[-1])
             shutil.copy(self.input,os.path.join(self.outdir,'{id}-{infile}'.format(id=self.plantumlid,infile=self.input.split('/')[-1])))
@@ -965,8 +994,16 @@ skinparam usecase {
             # usecaseExecutionHdr += 'usecase (' + u + ') << execution >> \n'
             # usecaseExecutionHdr += '(' + u + ') as (' + u + ') << Execution >> \n'
         # f.write(totalhdr + usecaseExecutionHdr + totalbody + totaltail)
-        f.write(totalhdr + totalbody + totaltail)
+        f.write(totalfirsthdr + totalhdr + totalbody + totaltail + totallasttail)
         f.close()
+        with open(filename+'.deflate','w') as f:
+            deflatedLink = '''
+- svg through tiger02.lge.com server
+  - ![](http://tiger02.lge.com:18080/svg/{plantuml})
+- png through www.plantuml.com
+  - ![](https://www.plantuml.com/plantuml/png/{plantuml})
+  '''.format( plantuml=deflate_and_encode(totalhdr + totalbody + totaltail))
+            f.write(deflatedLink)
         self.pngfiles = []
         if self.png:
             for md in self.mdList:
